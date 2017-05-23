@@ -13,6 +13,7 @@ def evaluate(method, classifier, output_file):
     precisions = []
     recalls = []
     f_measures = []
+    aucs = []
     g_means = []
 
     for name, folds in datasets.load_all().items():
@@ -33,6 +34,7 @@ def evaluate(method, classifier, output_file):
             precisions.append(metrics.precision_score(y_test, predictions))
             recalls.append(metrics.recall_score(y_test, predictions))
             f_measures.append(metrics.f1_score(y_test, predictions))
+            aucs.append(metrics.roc_auc_score(y_test, predictions))
 
             g_mean = 1.0
 
@@ -50,8 +52,8 @@ def evaluate(method, classifier, output_file):
 
     output_path = os.path.join(os.path.dirname(__file__), 'results', output_file)
     df = pd.DataFrame({'dataset': names, 'partition': partitions, 'accuracy': accuracies, 'precision': precisions,
-                       'recall': recalls, 'f-measure': f_measures, 'g-mean': g_means})
-    df = df[['dataset', 'partition', 'accuracy', 'precision', 'recall', 'f-measure', 'g-mean']]
+                       'recall': recalls, 'f-measure': f_measures, 'auc': aucs, 'g-mean': g_means})
+    df = df[['dataset', 'partition', 'accuracy', 'precision', 'recall', 'f-measure', 'auc', 'g-mean']]
     df.to_csv(output_path, index=False)
 
 
@@ -66,7 +68,7 @@ def compare(output_files):
         dfs[f] = pd.read_csv(path)
 
     datasets = list(dfs.values())[0]['dataset'].unique()
-    measures = ['accuracy', 'precision', 'recall', 'f-measure', 'g-mean']
+    measures = ['accuracy', 'precision', 'recall', 'f-measure', 'auc', 'g-mean']
 
     for measure in measures:
         results[measure] = {}
