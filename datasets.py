@@ -4,10 +4,14 @@ import numpy as np
 import pandas as pd
 import pickle
 
-from urllib.request import urlretrieve
 from sklearn import preprocessing
 from sklearn.model_selection import StratifiedKFold
 from sklearn.preprocessing import MinMaxScaler
+
+try:
+    from urllib.request import urlretrieve
+except ImportError:
+    from urllib import urlretrieve
 
 
 DATA_PATH = os.path.join(os.path.dirname(__file__), 'data')
@@ -95,10 +99,10 @@ def load(name, url=None, encode_features=True, remove_metadata=True, scale=True)
         os.mkdir(FOLDS_PATH)
 
     if os.path.exists(partitions_path):
-        partitions = pickle.load(open(partitions_path, 'rb'), encoding='latin1')
+        partitions = pickle.load(open(partitions_path, 'rb'))
     else:
         partitions = partition(X, y)
-        pickle.dump(partitions, open(partitions_path, 'wb'), encoding='latin1')
+        pickle.dump(partitions, open(partitions_path, 'wb'))
 
     folds = []
 
@@ -117,34 +121,21 @@ def load(name, url=None, encode_features=True, remove_metadata=True, scale=True)
     return folds
 
 
-def load_all():
-    base_url = 'http://sci2s.ugr.es/keel/keel-dataset/datasets/imbalanced/'
+def load_all(type=None):
+    assert type in [None, 'preliminary', 'final']
 
-    suffixes = (
-        'imb_IRlowerThan9/wisconsin.zip',
-        'imb_IRlowerThan9/pima.zip',
-        'imb_IRlowerThan9/yeast1.zip',
-        'imb_IRlowerThan9/vehicle3.zip',
-        'imb_IRlowerThan9/ecoli1.zip',
-        'imb_IRlowerThan9/segment0.zip',
-        'imb_IRlowerThan9/glass6.zip',
-        'imb_IRlowerThan9/page-blocks0.zip',
-        'imb_IRhigherThan9p1/vowel0.zip',
-        'imb_IRhigherThan9p1/page-blocks-1-3_vs_4.zip',
-        'imb_IRhigherThan9p1/abalone9-18.zip',
-        'imb_IRhigherThan9p1/yeast-1-4-5-8_vs_7.zip',
-        'imb_IRhigherThan9p2/led7digit-0-2-4-5-6-7-8-9_vs_1.zip',
-        'imb_IRhigherThan9p2/cleveland-0_vs_4.zip',
-        'imb_IRhigherThan9p3/dermatology-6.zip',
-        'imb_IRhigherThan9p3/winequality-red-4.zip',
-        'imb_IRhigherThan9p3/poker-8-9_vs_6.zip'
-    )
+    urls = []
+
+    for current_type in ['preliminary', 'final']:
+        if type in [None, current_type]:
+            with open(os.path.join(os.path.dirname(__file__), 'datasets_%s.txt' % current_type)) as file:
+                for line in file.readlines():
+                    urls.append(line.rstrip())
 
     datasets = {}
 
-    for suffix in suffixes:
-        name = suffix.split('/')[-1].replace('.zip', '')
-        url = base_url + suffix
+    for url in urls:
+        name = url.split('/')[-1].replace('.zip', '')
         datasets[name] = load(name, url)
 
     return datasets
