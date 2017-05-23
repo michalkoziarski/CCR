@@ -8,7 +8,7 @@ from imblearn.over_sampling import SMOTE
 from imblearn.combine import SMOTEENN, SMOTETomek
 
 
-def evaluate(method, classifier, output_file):
+def evaluate(method, classifier, output_file, type=None):
     names = []
     partitions = []
     accuracies = []
@@ -18,7 +18,7 @@ def evaluate(method, classifier, output_file):
     aucs = []
     g_means = []
 
-    for name, folds in datasets.load_all().items():
+    for name, folds in datasets.load_all(type).items():
         for i in range(len(folds)):
             (X_train, y_train), (X_test, y_test) = folds[i]
             labels = np.unique(y_test)
@@ -98,7 +98,7 @@ def compare(output_files):
         for method in output_files:
             summary[measure][method] = 0
 
-        tables[measure] = pd.DataFrame(tables[measure], columns=['Data sets'] + output_files)
+        tables[measure] = pd.DataFrame(tables[measure], columns=['dataset'] + output_files)
 
     for measure in measures:
         for dataset in datasets:
