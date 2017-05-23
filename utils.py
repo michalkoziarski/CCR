@@ -19,6 +19,9 @@ def evaluate(method, classifier, output_file):
     for name, folds in datasets.load_all().items():
         for i in range(len(folds)):
             (X_train, y_train), (X_test, y_test) = folds[i]
+            labels = np.unique(y_test)
+            counts = [len(y_test[y_test == label]) for label in labels]
+            minority_class = labels[np.argmin(counts)]
 
             assert len(np.unique(y_train)) == len(np.unique(y_test)) == 2
 
@@ -31,8 +34,8 @@ def evaluate(method, classifier, output_file):
             names.append(name)
             partitions.append(i)
             accuracies.append(metrics.accuracy_score(y_test, predictions))
-            precisions.append(metrics.precision_score(y_test, predictions))
-            recalls.append(metrics.recall_score(y_test, predictions))
+            precisions.append(metrics.precision_score(y_test, predictions, pos_label=minority_class))
+            recalls.append(metrics.recall_score(y_test, predictions, pos_label=minority_class))
             f_measures.append(metrics.f1_score(y_test, predictions))
             aucs.append(metrics.roc_auc_score(y_test, predictions))
 
