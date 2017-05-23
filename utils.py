@@ -5,6 +5,7 @@ import pandas as pd
 
 from sklearn import metrics
 from imblearn.over_sampling import SMOTE
+from imblearn.combine import SMOTEENN, SMOTETomek
 
 
 def evaluate(method, classifier, output_file):
@@ -26,8 +27,8 @@ def evaluate(method, classifier, output_file):
 
             assert len(np.unique(y_train)) == len(np.unique(y_test)) == 2
 
-            if method.__class__ is SMOTE:
-                method = SMOTE(k=np.min([len(y_train[y_train == minority_class]) - 1, 5]))
+            if method.__class__ in [SMOTE, SMOTEENN, SMOTETomek]:
+                method.k = method.k_neighbors = np.min([len(y_train[y_train == minority_class]) - 1, 5])
 
             if method is not None:
                 X_train, y_train = method.fit_sample(X_train, y_train)
