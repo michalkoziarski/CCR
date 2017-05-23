@@ -16,8 +16,9 @@ def taxicab_sample(n, r):
 
 
 class CCR:
-    def __init__(self, energy=None, n=None):
+    def __init__(self, energy=0.25, scaling=0.5, n=None):
         self.energy = energy
+        self.scaling = scaling
         self.n = n
 
     def fit_sample(self, X, y):
@@ -36,10 +37,7 @@ class CCR:
         else:
             n = self.n
 
-        if self.energy is None:
-            energy = 0.25 * np.sqrt(X.shape[1])
-        else:
-            energy = self.energy
+        energy = self.energy * (X.shape[1] ** self.scaling)
 
         distances = np.zeros((len(minority), len(majority)))
 
