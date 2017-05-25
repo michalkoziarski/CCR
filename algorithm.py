@@ -16,7 +16,7 @@ def taxicab_sample(n, r):
 
 
 class CCR:
-    def __init__(self, energy=0.25, scaling=0.5, n=None):
+    def __init__(self, energy=0.25, scaling=0.0, n=None):
         self.energy = energy
         self.scaling = scaling
         self.n = n
