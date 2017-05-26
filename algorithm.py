@@ -1,5 +1,7 @@
 import numpy as np
 
+from sklearn.model_selection import StratifiedKFold
+
 
 def distance(x, y):
     return np.sum(np.abs(x - y))
@@ -112,3 +114,43 @@ class CCR:
         return np.concatenate([majority, minority, appended]), \
                np.concatenate([np.tile([majority_class], len(majority)),
                                np.tile([minority_class], len(minority) + len(appended))])
+
+
+class CCRSelection:
+    def __init__(self, classifier, measure, n_splits=5, energies=(0.25,), scaling_factors=(0.0,), n=None):
+        self.classifier = classifier
+        self.measure = measure
+        self.n_splits = n_splits
+        self.energies = energies
+        self.scaling_factors = scaling_factors
+        self.n = n
+        self.selected_energy = None
+        self.selected_scaling = None
+        self.skf = StratifiedKFold(n_splits=n_splits)
+
+    def fit_sample(self, X, y):
+        self.skf.get_n_splits(X, y)
+
+        best_score = -np.inf
+
+        for energy in self.energies:
+            for scaling in self.scaling_factors:
+                scores = []
+
+                for train_idx, test_idx in self.skf.split(X, y):
+                    X_train, y_train = CCR(energy=energy, scaling=scaling, n=self.n).\
+                        fit_sample(X[train_idx], y[train_idx])
+
+                    classifier = self.classifier.fit(X_train, y_train)
+                    predictions = classifier.predict(X[test_idx])
+                    scores.append(self.measure(y[test_idx], predictions))
+
+                score = np.mean(scores)
+
+                if score > best_score:
+                    self.selected_energy = energy
+                    self.selected_scaling = scaling
+
+                    best_score = score
+
+        return CCR(energy=self.selected_energy, scaling=self.selected_scaling, n=self.n).fit_sample(X, y)

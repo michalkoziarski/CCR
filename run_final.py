@@ -1,6 +1,7 @@
 import os
 
 from utils import evaluate, compare
+from sklearn.metrics import roc_auc_score
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.svm import LinearSVC
@@ -9,7 +10,7 @@ from sklearn.ensemble import BaggingClassifier
 from imblearn.over_sampling import SMOTE, ADASYN
 from imblearn.under_sampling import NeighbourhoodCleaningRule
 from imblearn.combine import SMOTETomek, SMOTEENN
-from algorithm import CCR
+from algorithm import CCRSelection
 
 
 if __name__ == '__main__':
@@ -21,6 +22,8 @@ if __name__ == '__main__':
         'svm': LinearSVC(),
         'nb': GaussianNB()
     }
+
+    energies = [0.001, 0.0025, 0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1.0, 2.5, 5.0, 10.0, 25.0, 50.0, 100.0]
 
     results_path = os.path.join(os.path.dirname(__file__), 'results')
 
@@ -35,7 +38,8 @@ if __name__ == '__main__':
         evaluate(NeighbourhoodCleaningRule(), classifier, '%s_ncr.csv' % name, type='final')
         evaluate(SMOTETomek(), classifier, '%s_t-link.csv' % name, type='final')
         evaluate(SMOTEENN(), classifier, '%s_enn.csv' % name, type='final')
-        evaluate(CCR(), classifier, '%s_ccr.csv' % name, type='final')
+        evaluate(CCRSelection(energies=energies, classifier=classifier, measure=roc_auc_score),
+                 classifier, '%s_ccr.csv' % name, type='final')
 
         summary, tables = compare(['%s_base.csv' % name, '%s_adasyn.csv' % name, '%s_smote.csv' % name,
                                    '%s_borderline.csv' % name, '%s_ncr.csv' % name, '%s_t-link.csv' % name,
